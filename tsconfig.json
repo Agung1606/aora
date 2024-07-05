@@ -13,5 +13,5 @@
     "**/*.tsx",
     "app/index.tsx",
     "nativewind.d.ts"
-  ]
+, "context/GlobalProvider.js"  ]
 }

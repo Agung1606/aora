@@ -1,4 +1,4 @@
-import { Client, Account, ID } from "react-native-appwrite";
+import { Client, Account, ID, Avatars, Databases, Query } from "react-native-appwrite";
 
 export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
@@ -18,15 +18,70 @@ client
   .setPlatform(appwriteConfig.platform);
 
 const account = new Account(client);
+const avatars = new Avatars(client);
+const databases = new Databases(client);
 
-// just an example
-export const createUser = () => {
-  account.create(ID.unique(), "me@joyboy.com", "alahalah", "Agung Enjoy").then(
-    function (response) {
-      console.log(response);
-    },
-    function (error) {
-      console.log(error);
-    }
-  );
+export const createUser = async (
+  email: string,
+  password: string,
+  username: string
+) => {
+  try {
+    const newAccount = await account.create(
+      ID.unique(),
+      email,
+      password,
+      username
+    );
+
+    if (!newAccount) throw new Error();
+
+    const avatarUrl = avatars.getInitials(username);
+
+    await signIn(email, password);
+
+    const newUser = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      ID.unique(),
+      {
+        username,
+        email,
+        avatar: avatarUrl,
+        accountId: newAccount.$id,
+      }
+    );
+
+    return newUser;
+  } catch (error: any) {
+    console.error(error);
+    throw new Error(error);
+  }
+};
+
+export const signIn = async (email: string, password: string) => {
+  try {
+    const session = await account.createEmailPasswordSession(email, password);
+    return session;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+export const getCurrentUser = async () => {
+  try {
+    const currentAccount = await account.get();
+    if(!currentAccount) throw new Error;
+
+    const currentUser = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      [Query.equal('accountId', currentAccount.$id)]
+    )
+    if(!currentUser) throw new Error;
+
+    return currentUser.documents[0];
+  } catch (error: any) {
+    throw new Error(error);
+  }
 };
