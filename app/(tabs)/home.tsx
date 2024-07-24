@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  RefreshControl,
-} from "react-native";
+import { View, Text, FlatList, Image, RefreshControl } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "@/constants";
@@ -13,13 +7,14 @@ import Trending from "@/components/Trending";
 import EmptyState from "@/components/EmptyState";
 
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { getAllPosts } from "@/lib/appwrite";
+import { getAllPosts, getTrendingPosts } from "@/lib/appwrite";
 import useAppwrite from "@/lib/useAppwrite";
 import VideoCard from "@/components/VideoCard";
 
 const Home = () => {
   const { user } = useGlobalContext();
   const { data: posts, refetch } = useAppwrite(getAllPosts);
+  const { data: trendingPosts } = useAppwrite(getTrendingPosts);
 
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = async () => {
@@ -29,15 +24,12 @@ const Home = () => {
     setRefreshing(false);
   };
 
-
   return (
     <SafeAreaView className="bg-primary h-full">
       <FlatList
         data={posts}
         keyExtractor={(item) => item.$id}
-        renderItem={({ item }) => (
-          <VideoCard item={item} />
-        )}
+        renderItem={({ item }) => <VideoCard item={item} />}
         ListHeaderComponent={() => (
           <View className="my-6 px-4 space-y-6">
             <View className="justify-between items-center flex-row mb-6">
@@ -63,9 +55,9 @@ const Home = () => {
 
             <View className="w-full flex-1 pt-5 pb-8">
               <Text className="text-gray-100 text-lg font-pregular mb-3">
-                Latest Videos
+                Trending Videos
               </Text>
-              <Trending posts={[{ $id: "1" }, { $id: "2" }] ?? []} />
+              <Trending posts={trendingPosts ?? []} />
             </View>
           </View>
         )}

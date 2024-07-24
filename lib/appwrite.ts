@@ -1,4 +1,11 @@
-import { Client, Account, ID, Avatars, Databases, Query } from "react-native-appwrite";
+import {
+  Client,
+  Account,
+  ID,
+  Avatars,
+  Databases,
+  Query,
+} from "react-native-appwrite";
 
 export const appwriteConfig = {
   endpoint: "https://cloud.appwrite.io/v1",
@@ -71,14 +78,14 @@ export const signIn = async (email: string, password: string) => {
 export const getCurrentUser = async () => {
   try {
     const currentAccount = await account.get();
-    if(!currentAccount) throw new Error;
+    if (!currentAccount) throw new Error();
 
     const currentUser = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.userCollectionId,
-      [Query.equal('accountId', currentAccount.$id)]
-    )
-    if(!currentUser) throw new Error;
+      [Query.equal("accountId", currentAccount.$id)]
+    );
+    if (!currentUser) throw new Error();
 
     return currentUser.documents[0];
   } catch (error: any) {
@@ -91,10 +98,52 @@ export const getAllPosts = async () => {
     const posts = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.videoCollectionId
-    )
+    );
 
     return posts;
   } catch (error: any) {
-    throw new Error(error)
+    throw new Error(error);
   }
-}
+};
+
+export const getTrendingPosts = async () => {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.orderDesc("$createdAt"), Query.limit(7)]
+    );
+
+    return posts;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+export const searchPosts = async (query: any) => {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.search("title", query)]
+    );
+
+    return posts;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
+
+export const getUserPosts = async (userId: string) => {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.videoCollectionId,
+      [Query.equal("creator", userId)]
+    );
+
+    return posts;
+  } catch (error: any) {
+    throw new Error(error);
+  }
+};
